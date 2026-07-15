@@ -5,6 +5,8 @@ import { DefaultChatTransport } from "ai";
 import { useState } from "react";
 import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import WavyRippleBackground from "@/components/lightswind/wavy-ripple-background";
+import { SendHorizontal } from "lucide-react";
 
 type Role = "frontend" | "backend" | "ux" | "finance";
 
@@ -74,18 +76,17 @@ export default function Home() {
 
 
   return (
-    <main className="
-      min-h-screen
-      bg-slate-100
-      flex
-      justify-center
-      p-6
-    ">
+    <main className="relative min-h-screen flex justify-center p-6 overflow-hidden">
+  <WavyRippleBackground
+    waveColor="#3b82f6"
+    className="absolute inset-0 -z-10"
+  />
 
       <div className="
+        z-1
         w-full
         max-w-3xl
-        bg-white
+        bg-white/80
         rounded-xl
         shadow
         flex
@@ -322,15 +323,28 @@ export default function Home() {
 
 
           <button
-            disabled={isLoading}
+            type="submit"
+            disabled={isLoading || !input.trim()}
             className="
+              h-12
+              w-12
               bg-blue-600
+              hover:bg-blue-700
               text-white
-              px-5
-              rounded-lg
+              flex
+              items-center
+              justify-center
+              duration-200
+              hover:scale-105
+              active:scale-95
+              disabled:cursor-default
+              disabled:scale-100
+              disabled:bg-slate-300
+              rounded-full
+              cursor-pointer
             "
           >
-            Skicka
+            <SendHorizontal size={20} />
           </button>
 
 
@@ -338,7 +352,6 @@ export default function Home() {
 
 
       </div>
-
 
     </main>
   );
