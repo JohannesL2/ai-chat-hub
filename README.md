@@ -1,5 +1,7 @@
 # AI Chat Hub
 
+![preview](./public/preview.gif)
+
 > A modern AI chat application built with **Next.js**, **AI SDK**, and **Google Gemini**. Switch between specialized AI assistants, stream responses in real time, and get focused answers through a clean, responsive interface.
 
 ---

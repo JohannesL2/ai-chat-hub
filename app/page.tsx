@@ -86,9 +86,11 @@ export default function Home() {
         z-1
         w-full
         max-w-3xl
-        bg-white/80
+        bg-white/70
+        backdrop-blur-xl
+      border-white/20
+        shadow-2xl
         rounded-xl
-        shadow
         flex
         flex-col
         h-[90vh]
