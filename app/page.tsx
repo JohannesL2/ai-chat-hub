@@ -91,7 +91,7 @@ export default function Home() {
         max-w-3xl
         bg-white/70
         backdrop-blur-xl
-      border-white/20
+        border border-white/20
         shadow-2xl
         rounded-xl
         flex
@@ -123,6 +123,7 @@ export default function Home() {
 
               <button
                 key={r}
+                disabled={role === r}
                 onClick={() =>
                   changeRole(r)
                 }
@@ -133,10 +134,8 @@ export default function Home() {
                   text-sm
                   ${
                     role === r
-                    ?
-                    "bg-blue-600 text-white"
-                    :
-                    "bg-slate-200"
+                    ? "bg-blue-600 text-white cursor-default"
+                    : "bg-slate-200 cursor-pointer hover:bg-slate-300 transition-colors"
                   }
                 `}
               >
