@@ -77,10 +77,13 @@ export default function Home() {
 
   return (
     <main className="relative min-h-screen flex justify-center p-6 overflow-hidden">
-  <WavyRippleBackground
-    waveColor="#3b82f6"
-    className="absolute inset-0 -z-10"
-  />
+ 
+  <div className="fixed inset-0 -z-10 opacity-60">
+    <WavyRippleBackground
+      waveColor="#3b82f6"
+      className="absolute inset-0 -z-10"
+    />
+  </div>
 
       <div className="
         z-1
