@@ -2,18 +2,19 @@
 
 ![AI Chat Hub preview](./public/preview.gif)
 
-AI Chat Hub is a multi-assistant AI chat application built with Next.js, the Vercel AI SDK, and Google Gemini. Choose a specialist for frontend development, backend engineering, UX/UI, or finance and get a focused, streamed response.
+AI Chat Hub is a multi-assistant AI chat application built with Next.js, the Vercel AI SDK, and Google Gemini. Choose a specialist for frontend development, backend engineering, UX/UI, or finance.
 
 ## Project overview
 
-This project demonstrates a single chat interface that routes conversations to role-specific AI assistants. Responses stream as they are generated, and Markdown content—including tables and lists—is rendered in the conversation.
+The app includes a no-key demo mode with prewritten sample responses, so visitors can explore the chat interface without an account, API key, or usage costs. Switch to Live AI to send prompts to Gemini and receive streamed, model-generated responses.
 
-The interface is designed to work on desktop and mobile, with accessible assistant controls, a labeled message field, loading feedback, and a retry action when a response fails.
+Conversations can be routed to role-specific assistants. Markdown content—including tables and lists—is rendered in the conversation. The responsive interface includes accessible assistant controls, a labeled message field, loading feedback, and a retry action when a live response fails.
 
 ## Features
 
 - Four specialized assistants with separate system prompts
-- Streaming responses powered by Google Gemini
+- Default demo mode with prewritten sample responses and no API calls
+- Optional live, streamed responses powered by Google Gemini
 - Markdown and GitHub Flavored Markdown rendering
 - Responsive chat layout
 - Request validation and conversation-size limits on the API route
@@ -37,21 +38,23 @@ The interface is designed to work on desktop and mobile, with accessible assista
    npm install
    ```
 
-2. Create `.env.local` in the project root and add a Google AI Studio API key:
-
-   ```env
-   GOOGLE_GENERATIVE_AI_API_KEY=your_gemini_api_key
-   ```
-
-   Create a key at [Google AI Studio](https://aistudio.google.com/app/apikey). Keep this key private and do not commit it.
-
-3. Start the development server:
+2. Start the app in demo mode without configuring an API key:
 
    ```bash
    npm run dev
    ```
 
-4. Open [http://localhost:3000](http://localhost:3000).
+3. Open [http://localhost:3000](http://localhost:3000). Demo mode is selected by default and does not make requests to Gemini.
+
+### Enable live AI responses
+
+To use Live AI locally, create `.env.local` in the project root and add a Google AI Studio API key:
+
+```env
+GOOGLE_GENERATIVE_AI_API_KEY=your_gemini_api_key
+```
+
+Create a key at [Google AI Studio](https://aistudio.google.com/app/apikey). Keep it private, configure it as a server-side environment variable, and never expose or commit it. Restart the development server after adding the key. Select **Live AI** in the app to use Gemini.
 
 ## Validation
 
@@ -62,11 +65,15 @@ npm run lint
 npm run build
 ```
 
-Chat requests are validated and capped by message count and character length. These limits are not a substitute for deployment-level rate limiting; configure rate limits with your hosting provider before exposing a deployment publicly. The application does not persist conversations.
+Live chat requests are validated and capped by message count and character length. Demo mode uses prewritten responses and does not contact the AI API. These limits are not a substitute for deployment-level rate limiting; configure rate limits with your hosting provider before enabling Live AI publicly. The application does not persist conversations.
 
 ## Deployment
 
-No public demo URL is configured in this repository yet. To publish the app, deploy it to a Next.js-compatible host and add `GOOGLE_GENERATIVE_AI_API_KEY` as a server-side environment variable.
+No public deployment is configured in this repository yet. Deploy to a Next.js-compatible host to share an interactive portfolio demo. Demo mode works without a Gemini key; to enable Live AI on the deployment, add `GOOGLE_GENERATIVE_AI_API_KEY` as a server-side environment variable and configure rate limits with your host.
+
+Suggested portfolio description:
+
+> AI Chat Hub is a responsive multi-assistant chat app built with Next.js, TypeScript, and the Vercel AI SDK. It offers a no-key demo mode with sample responses and an optional Gemini-powered live mode, with request validation and accessible chat controls.
 
 ## License
 
