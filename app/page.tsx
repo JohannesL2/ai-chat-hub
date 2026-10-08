@@ -9,11 +9,58 @@ import WavyRippleBackground from "@/components/lightswind/wavy-ripple-background
 import { SendHorizontal } from "lucide-react";
 
 type Role = "frontend" | "backend" | "ux" | "finance";
+type ChatMode = "demo" | "live";
+type DemoMessage = {
+  id: string;
+  role: "user" | "assistant";
+  text: string;
+};
+
+const exampleQuestions: Record<Role, string> = {
+  frontend: "How should I organize a reusable React component?",
+  backend: "How should I design a reliable API endpoint?",
+  ux: "How can I make a form easier to use?",
+  finance: "What should I consider when adding payments to an app?",
+};
+
+const sampleResponses: Record<Role, string> = {
+  frontend: `**Sample response:** Keep components focused on one responsibility and make reusable behavior explicit through props.
+
+- Extract repeated UI into a small component.
+- Keep state close to where it is used.
+- Add types for the component's public props.
+
+This is a prewritten example. Switch to Live AI for a Gemini-generated answer.`,
+  backend: `**Sample response:** Design an API endpoint around a clear resource and validate input at the boundary.
+
+- Return consistent status codes and error shapes.
+- Keep secrets and authorization checks on the server.
+- Add request limits and tests for invalid input.
+
+This is a prewritten example. Switch to Live AI for a Gemini-generated answer.`,
+  ux: `**Sample response:** Make a form easier to use by asking only for information you need and explaining errors next to the relevant field.
+
+- Use visible labels rather than placeholder text alone.
+- Preserve valid input when validation fails.
+- Make the next action clear and keyboard accessible.
+
+This is a prewritten example. Switch to Live AI for a Gemini-generated answer.`,
+  finance: `**Sample response:** Before adding payments, define the transaction lifecycle and how you will handle failures.
+
+- Use a trusted payment provider; never store card details yourself.
+- Make payment requests idempotent to avoid duplicate charges.
+- Plan for refunds, webhook verification, and clear receipts.
+
+This is a prewritten example. Switch to Live AI for a Gemini-generated answer.`,
+};
 
 export default function Home() {
   const [role, setRole] = useState<Role>("frontend");
+  const [mode, setMode] = useState<ChatMode>("demo");
   const [input, setInput] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [demoMessages, setDemoMessages] = useState<DemoMessage[]>([]);
+  const [demoLoading, setDemoLoading] = useState(false);
   const {
     messages,
     sendMessage,
@@ -28,9 +75,25 @@ export default function Home() {
       },
     }),
     onError() {
-      setError("We could not get a response. Please try again.");
+      setError(
+        "Live AI is unavailable. Check that a Gemini API key is configured on the server, then try again.",
+      );
     },
   });
+
+  const isLiveLoading = status === "submitted" || status === "streaming";
+  const isLoading = isLiveLoading || demoLoading;
+  const visibleMessages: DemoMessage[] =
+    mode === "demo"
+      ? demoMessages
+      : messages.map((message) => ({
+          id: message.id,
+          role: message.role === "user" ? "user" : "assistant",
+          text: message.parts
+            .filter((part) => part.type === "text")
+            .map((part) => (part.type === "text" ? part.text : ""))
+            .join(""),
+        }));
 
   const send = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -38,13 +101,34 @@ export default function Home() {
     if (!text || isLoading) return;
     setError(null);
     setInput("");
+
+    if (mode === "demo") {
+      setDemoMessages((current) => [
+        ...current,
+        { id: crypto.randomUUID(), role: "user", text },
+      ]);
+      setDemoLoading(true);
+      window.setTimeout(() => {
+        setDemoMessages((current) => [
+          ...current,
+          {
+            id: crypto.randomUUID(),
+            role: "assistant",
+            text: sampleResponses[role],
+          },
+        ]);
+        setDemoLoading(false);
+      }, 450);
+      return;
+    }
+
     await sendMessage({ text });
   };
 
   const changeRole = (newRole: Role) => {
     if (newRole === role || isLoading) return;
     if (
-      messages.length > 0 &&
+      visibleMessages.length > 0 &&
       !window.confirm(
         "Switching assistants will clear this conversation. Do you want to continue?",
       )
@@ -53,10 +137,25 @@ export default function Home() {
     }
     setError(null);
     setMessages([]);
+    setDemoMessages([]);
     setRole(newRole);
   };
 
-  const isLoading = status === "submitted" || status === "streaming";
+  const changeMode = (newMode: ChatMode) => {
+    if (newMode === mode || isLoading) return;
+    if (
+      visibleMessages.length > 0 &&
+      !window.confirm(
+        "Switching chat modes will clear this conversation. Do you want to continue?",
+      )
+    ) {
+      return;
+    }
+    setError(null);
+    setMessages([]);
+    setDemoMessages([]);
+    setMode(newMode);
+  };
 
   return (
     <main className="relative flex min-h-dvh justify-center overflow-hidden p-3 sm:p-6">
@@ -73,6 +172,32 @@ export default function Home() {
           <p className="mt-1 text-sm text-slate-600">
             Choose a specialist and ask a question.
           </p>
+
+          <div className="mt-4 flex flex-wrap items-center gap-2">
+            <div className="flex gap-2" role="group" aria-label="Choose chat mode">
+              {(["demo", "live"] as ChatMode[]).map((chatMode) => (
+                <button
+                  key={chatMode}
+                  type="button"
+                  disabled={isLoading}
+                  aria-pressed={mode === chatMode}
+                  onClick={() => changeMode(chatMode)}
+                  className={`rounded-full px-4 py-2 text-sm disabled:cursor-not-allowed ${
+                    mode === chatMode
+                      ? "bg-slate-900 text-white"
+                      : "bg-slate-200 hover:bg-slate-300"
+                  }`}
+                >
+                  {chatMode === "demo" ? "Demo mode" : "Live AI"}
+                </button>
+              ))}
+            </div>
+            <span className="text-sm text-slate-600">
+              {mode === "demo"
+                ? "No API key needed. Replies are prewritten examples."
+                : "Uses Gemini. Requires a server-side API key."}
+            </span>
+          </div>
 
           <div className="mt-4 flex flex-wrap gap-2" role="group" aria-label="Choose an assistant">
             {(["frontend", "backend", "ux", "finance"] as Role[]).map((assistantRole) => (
@@ -99,13 +224,24 @@ export default function Home() {
           aria-label="Conversation"
           aria-live="polite"
         >
-          {messages.length === 0 && (
-            <p className="text-center text-slate-500">
-              Ask your {role === "ux" ? "UX/UI" : role} expert a question.
-            </p>
+          {visibleMessages.length === 0 && (
+            <div className="space-y-3 text-center text-slate-600">
+              <p>
+                Ask your {role === "ux" ? "UX/UI" : role} expert a question.
+              </p>
+              {mode === "demo" && (
+                <button
+                  type="button"
+                  onClick={() => setInput(exampleQuestions[role])}
+                  className="text-sm font-semibold text-blue-700 underline underline-offset-2"
+                >
+                  Try an example question
+                </button>
+              )}
+            </div>
           )}
 
-          {messages.map((message) => (
+          {visibleMessages.map((message) => (
             <div
               key={message.id}
               className={`mb-4 ${message.role === "user" ? "text-right" : "text-left"}`}
@@ -117,37 +253,31 @@ export default function Home() {
                     : "bg-slate-200 text-black"
                 }`}
               >
-                {message.parts.map((part, index) => {
-                  if (part.type !== "text") return null;
-                  return (
-                    <Markdown
-                      key={index}
-                      remarkPlugins={[remarkGfm]}
-                      components={{
-                        h2: ({ children }) => (
-                          <h2 className="mb-2 mt-4 text-lg font-bold">{children}</h2>
-                        ),
-                        p: ({ children }) => (
-                          <p className="mb-3 leading-7">{children}</p>
-                        ),
-                        li: ({ children }) => (
-                          <li className="mb-1 ml-5 list-disc">{children}</li>
-                        ),
-                        table: ({ children }) => (
-                          <table className="my-4 border border-slate-400">{children}</table>
-                        ),
-                        td: ({ children }) => (
-                          <td className="border px-3 py-2">{children}</td>
-                        ),
-                        th: ({ children }) => (
-                          <th className="border px-3 py-2 font-bold">{children}</th>
-                        ),
-                      }}
-                    >
-                      {part.text}
-                    </Markdown>
-                  );
-                })}
+                <Markdown
+                  remarkPlugins={[remarkGfm]}
+                  components={{
+                    h2: ({ children }) => (
+                      <h2 className="mb-2 mt-4 text-lg font-bold">{children}</h2>
+                    ),
+                    p: ({ children }) => (
+                      <p className="mb-3 leading-7">{children}</p>
+                    ),
+                    li: ({ children }) => (
+                      <li className="mb-1 ml-5 list-disc">{children}</li>
+                    ),
+                    table: ({ children }) => (
+                      <table className="my-4 border border-slate-400">{children}</table>
+                    ),
+                    td: ({ children }) => (
+                      <td className="border px-3 py-2">{children}</td>
+                    ),
+                    th: ({ children }) => (
+                      <th className="border px-3 py-2 font-bold">{children}</th>
+                    ),
+                  }}
+                >
+                  {message.text}
+                </Markdown>
               </div>
             </div>
           ))}
